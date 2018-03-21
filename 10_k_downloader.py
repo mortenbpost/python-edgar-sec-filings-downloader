@@ -18,16 +18,17 @@ def parse_form_index(index_form_file, year, qtr):
 
     f = open(index_form_file, 'r')
     for line in f.readlines()[10:]:
-            form_type = line[:12].strip()
-            company_name = line[12:74].strip()
-            cik = line[74:86].strip()
-            date_filed = line[86:96].strip()
-            rel_file_name = line[98:].strip()
-            url = url_postfix + rel_file_name
-            if form_type == "10-K":
-                counter = counter + 1
-                # download_file(url, rel_file_name, date_filed)
-                executor.submit(download_file, url, rel_file_name, date_filed, counter, year, qtr)
+        form_type = line[:12].strip()
+        # company_name = line[12:74].strip()
+        # cik = line[74:86].strip()
+        date_filed = line[86:96].strip()
+        rel_file_name = line[98:].strip()
+        url = url_postfix + rel_file_name
+        if form_type == "10-K":
+            counter = counter + 1
+            # download_file(url, rel_file_name, date_filed)
+            executor.submit(download_file, url, rel_file_name,
+                            date_filed, counter, year, qtr)
 
     print("Waiting for threads to finish...")
     executor.shutdown(wait=True)
@@ -35,10 +36,12 @@ def parse_form_index(index_form_file, year, qtr):
 
 
 def download_file(url, rel_file_name, date_filed, count, year, qtr):
-    abs_file_path = os.path.abspath(download_sub_dir_files + "/" + year + "/" + qtr + "/" + date_filed + rel_file_name[10:])
+    abs_file_path = os.path.abspath(
+        download_sub_dir_files + "/" + year + "/" + qtr + "/" + date_filed + rel_file_name[10:])
 
     if os.path.isfile(abs_file_path):
-        print(str(count) + ": " + abs_file_path + " already exists (" + str(os.path.getsize(abs_file_path)) + ").")
+        print(str(count) + ": " + abs_file_path +
+              " already exists (" + str(os.path.getsize(abs_file_path)) + ").")
         return
 
     abs_dir = os.path.dirname(abs_file_path)
@@ -56,7 +59,8 @@ def download_index_file(year, qtr):
     url = url_postfix + "edgar/full-index/" + year + "/" + qtr + "/form.idx"
     print("Downloading index file: " + url)
     r = requests.get(url)
-    abs_file_path = os.path.abspath(download_sub_dir_index + "/" + year + "/" + qtr + "/" + "form.idx")
+    abs_file_path = os.path.abspath(
+        download_sub_dir_index + "/" + year + "/" + qtr + "/" + "form.idx")
     abs_dir = os.path.dirname(abs_file_path)
     if not os.path.exists(abs_dir):
         os.makedirs(abs_dir)
@@ -73,7 +77,7 @@ def main():
     qtr = sys.argv[2]
 
     qtr_pattern = re.compile("QTR[1-4]")
-    year_pattern = re.compile("^\d{4}$")
+    year_pattern = re.compile(r"^\d{4}$")
 
     if qtr_pattern.match(qtr) is None or year_pattern.match(year) is None:
         print("Usage: 10_k_crawler3 <YEAR> <QTR[1-4]>")
@@ -85,3 +89,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
